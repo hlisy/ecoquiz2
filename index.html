@@ -1,0 +1,352 @@
+<!doctype html>
+
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>생태 & 환경 퀴즈</title>
+  <style>
+    :root{
+      --bg1: #FFF7F2; /* soft peach */
+      --bg2: #F6FFF5; /* mint */
+      --card: #FFFFFF;
+      --accent: #C7E7FF; /* pastel blue */
+      --accent2: #FBDDEC; /* pastel pink */
+      --text: #2E3A3F;
+      --muted: #6B7072;
+      --success: #BEE7C6;
+      --danger: #FFD6D6;
+      --glass: rgba(255,255,255,0.6);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', 'Helvetica Neue', Arial;
+    }
+    html,body{height:100%;margin:0}
+    body{
+      display:flex;align-items:center;justify-content:center;
+      background: linear-gradient(135deg,var(--bg1) 0%, var(--bg2) 100%);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .app{
+      width:100%;height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;
+    }
+    .card{
+      width:100%;max-width:1000px;height:100%;background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85));
+      border-radius:14px;box-shadow:0 8px 30px rgba(46,58,63,0.08);overflow:hidden;display:flex;flex-direction:column;
+    }
+    header{
+      padding:20px 28px;border-bottom:1px solid rgba(46,58,63,0.04);display:flex;align-items:center;justify-content:space-between;gap:12px;
+      background: linear-gradient(90deg, rgba(199,231,255,0.25), rgba(251,221,236,0.25));
+      backdrop-filter: blur(6px);
+    }
+    header h1{margin:0;font-size:18px;font-weight:600}
+    .meta{display:flex;gap:12px;align-items:center}
+    .pill{padding:6px 10px;border-radius:999px;background:var(--glass);font-size:13px;color:var(--muted)}.content{flex:1;display:flex;flex-direction:column;padding:28px;gap:20px;box-sizing:border-box}
+.progress-wrap{display:flex;align-items:center;gap:12px}
+.progress{flex:1;height:10px;background:rgba(46,58,63,0.06);border-radius:999px;overflow:hidden}
+.progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 400ms ease}
+.question-area{flex:1;display:flex;flex-direction:column;gap:18px}
+.qcard{background:transparent;flex:1;display:flex;flex-direction:column;gap:14px}
+.qnum{font-size:14px;color:var(--muted)}
+.qtext{font-size:22px;font-weight:700;line-height:1.25}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:6px}
+.opt{padding:14px;border-radius:12px;border:1px solid rgba(46,58,63,0.06);background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4));cursor:pointer;display:flex;align-items:center;gap:12px;transition:transform 120ms ease, box-shadow 120ms ease}
+.opt:hover{transform:translateY(-4px);box-shadow:0 6px 18px rgba(46,58,63,0.06)}
+.opt.selected{outline:3px solid rgba(199,231,255,0.45)}
+.opt.correct{background:linear-gradient(90deg,var(--success),#E8F7E8);border-color:rgba(0,0,0,0.03)}
+.opt.wrong{background:linear-gradient(90deg,var(--danger),#FFF2F2);border-color:rgba(0,0,0,0.03)}
+.controls{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.btn{padding:10px 14px;border-radius:10px;border:none;background:var(--accent);color:var(--text);font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+.btn.secondary{background:transparent;border:1px solid rgba(46,58,63,0.06);font-weight:600}
+.btn:disabled{opacity:0.45;cursor:not-allowed}
+
+footer{padding:14px 22px;border-top:1px solid rgba(46,58,63,0.04);display:flex;align-items:center;justify-content:space-between}
+
+/* result modal */
+.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(16,18,20,0.2);visibility:hidden;opacity:0;transition:opacity 200ms ease, visibility 200ms}
+.modal.open{visibility:visible;opacity:1}
+.modal-card{width:min(680px,92%);background:var(--card);padding:22px;border-radius:14px;box-shadow:0 18px 60px rgba(46,58,63,0.15);text-align:center}
+.score{font-size:42px;font-weight:800;margin:6px 0}
+.summary{color:var(--muted);margin-bottom:16px}
+
+@media(max-width:700px){
+  .options{grid-template-columns:1fr}
+  .qtext{font-size:20px}
+  header h1{font-size:16px}
+}
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card" role="application" aria-labelledby="appTitle">
+      <header>
+        <h1 id="appTitle">생태 & 환경 퀴즈</h1>
+        <div class="meta">
+          <div class="pill" id="difficulty">난이도: 중간</div>
+          <div class="pill" id="timer">문항: 0 / 10</div>
+        </div>
+      </header><div class="content">
+    <div class="progress-wrap">
+      <div class="qnum" id="qnum">문항 1</div>
+      <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+    </div>
+
+    <div class="question-area">
+      <div class="qcard">
+        <div class="qtext" id="question">로딩 중...</div>
+        <div class="options" id="options"></div>
+      </div>
+
+      <div class="controls">
+        <button class="btn secondary" id="prevBtn" disabled>이전</button>
+        <div style="flex:1"></div>
+        <button class="btn" id="nextBtn" disabled>다음</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div style="font-size:13px;color:var(--muted)">파스텔톤 · 심플 디자인 · 교육용 퀴즈</div>
+    <div style="font-size:13px;color:var(--muted)">작성자: ChatGPT</div>
+  </footer>
+</div>
+
+  </div>  <!-- result modal -->  <div class="modal" id="resultModal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h2>퀴즈 완료!</h2>
+      <div class="score" id="scoreText">0 / 10</div>
+      <p class="summary" id="summaryText">정답과 해설을 확인해보세요.</p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn" id="retryBtn">다시 풀기</button>
+        <button class="btn secondary" id="reviewBtn">정답 확인</button>
+      </div>
+    </div>
+  </div>  <script>
+    const quiz = [
+      {
+        q: '온실효과를 증가시키는 주된 온실가스는 무엇인가요?',
+        options: ['산소(O\u2082)', '이산화탄소(CO\u2082)', '질소(N\u2082)', '아르곤(Ar)'],
+        answer: 1,
+        explain: '이산화탄소는 산업혁명 이후 화석연료 연소로 대기 중 농도가 증가하여 온실효과를 강화합니다.'
+      },
+      {
+        q: '생물다양성(Biodiversity)이 중요한 이유로 옳지 않은 것은?',
+        options: ['생태계 안정성 향상','식량 자원 다양성','기후 변화 완화의 직접적 원인','약용 자원 제공'],
+        answer: 2,
+        explain: '생물다양성은 기후 변화 완화에 간접적으로 도움이 될 수 있지만, 그것이 "직접적 원인"은 아닙니다.'
+      },
+      {
+        q: '지속가능한 농업 방식이 아닌 것은?',
+        options: ['다양한 작물 혼작', '과도한 화학비료 사용', '토양보존 기술 적용', '물 절약 관개법 도입'],
+        answer: 1,
+        explain: '과도한 화학비료 사용은 토양과 수질 오염을 유발해 지속 가능하지 않습니다.'
+      },
+      {
+        q: '해양 산성화의 주된 원인은 무엇인가요?',
+        options: ['해수면 온도 상승', '이산화탄소 흡수', '플라스틱 쓰레기 증가', '과도한 어획'],
+        answer: 1,
+        explain: '대기 중 이산화탄소가 해수에 녹아 탄산을 형성하면 해양 산성화가 진행됩니다.'
+      },
+      {
+        q: '다음 중 재생 가능한 에너지원이 아닌 것은?',
+        options: ['태양광', '풍력', '석탄', '지열'],
+        answer: 2,
+        explain: '석탄은 화석연료로 재생 불가능합니다.'
+      },
+      {
+        q: '산림 파괴가 생태계에 미치는 영향으로 맞는 것은?',
+        options: ['서식지 상실로 종 감소','대기 중 산소의 즉각적 대량 증가','해양 산성화 촉진','자연재해 완화'],
+        answer: 0,
+        explain: '산림 파괴는 많은 종의 서식지를 없애 멸종위기와 생물다양성 감소를 유발합니다.'
+      },
+      {
+        q: '지구 평균 기온 상승을 1.5°C 이내로 제한하려는 국제적 목표는 어느 협약의 맥락에서 주로 논의되었나요?',
+        options: ['몬트리올 의정서','파리 협정','교토 의정서','바젤 협약'],
+        answer: 1,
+        explain: '파리 협정은 기후 변화 대응을 위해 섭씨 1.5~2°C 목표를 포함하고 있습니다.'
+      },
+      {
+        q: '플라스틱 쓰레기의 문제와 가장 직접적으로 관련 있는 것은?',
+        options: ['광물 자원 고갈','해양 생물의 섭식 및 폐사','대기 오염의 주요 원인','토양의 즉각적 산성화'],
+        answer: 1,
+        explain: '바다에 버려진 플라스틱은 해양 생물의 섭식과 얽힘으로 피해를 줍니다.'
+      },
+      {
+        q: '물의 순환(수문순환)에서 증발·증발산과 강수 사이의 균형이 깨지면 어떤 현상이 발생할 가능성이 높은가요?',
+        options: ['가뭄과 홍수의 빈도 변화','지구 자기장 약화','토지 면적의 급격한 증가','대기 내 산소 농도 상승'],
+        answer: 0,
+        explain: '기후 변화로 인해 지역별로 가뭄과 집중호우 등 물 관련 극단현상이 증가할 수 있습니다.'
+      },
+      {
+        q: '생태계를 보전하기 위한 효과적인 방법 중 하나로 옳은 것은?',
+        options: ['단일 품종 대량 재배 확대','보호구역(자연보호구) 설정','멸종위기종 포획 증가','무관심 유지'],
+        answer: 1,
+        explain: '보호구역 설정은 서식지 보전 및 종 다양성 유지에 효과적입니다.'
+      }
+    ];
+
+    let state = {
+      index: 0,
+      selected: Array(quiz.length).fill(null),
+      score: 0,
+      reviewed: false
+    };
+
+    const qnumEl = document.getElementById('qnum');
+    const questionEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const progressBar = document.getElementById('progressBar');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const timerPill = document.getElementById('timer');
+    const resultModal = document.getElementById('resultModal');
+    const scoreText = document.getElementById('scoreText');
+    const summaryText = document.getElementById('summaryText');
+    const retryBtn = document.getElementById('retryBtn');
+    const reviewBtn = document.getElementById('reviewBtn');
+
+    function render(){
+      const i = state.index;
+      const item = quiz[i];
+      qnumEl.textContent = `문항 ${i+1}`;
+      timerPill.textContent = `문항: ${i+1} / ${quiz.length}`;
+      progressBar.style.width = `${((i)/quiz.length)*100}%`;
+      questionEl.textContent = item.q;
+
+      // clear options
+      optionsEl.innerHTML = '';
+      item.options.forEach((opt, idx) =>{
+        const btn = document.createElement('button');
+        btn.className = 'opt';
+        btn.type = 'button';
+        btn.innerHTML = `<span style="font-weight:700">${String.fromCharCode(65+idx)}.</span> <span>${opt}</span>`;
+        btn.onclick = () => selectOption(idx);
+        // state styling
+        if(state.selected[i] !== null){
+          btn.classList.add('disabled');
+          btn.disabled = true;
+        }
+        optionsEl.appendChild(btn);
+      });
+
+      prevBtn.disabled = i === 0;
+      nextBtn.disabled = state.selected[i] === null;
+
+      // show previously selected mark if navigating back
+      if(state.selected[i] !== null){
+        // mark answers and show explanation highlight
+        const buttons = optionsEl.querySelectorAll('.opt');
+        buttons.forEach((b, idx) =>{
+          b.disabled = true;
+          if(idx === quiz[i].answer){
+            b.classList.add('correct');
+          }
+          if(idx === state.selected[i] && idx !== quiz[i].answer){
+            b.classList.add('wrong');
+          }
+        });
+      }
+    }
+
+    function selectOption(choice){
+      const i = state.index;
+      state.selected[i] = choice;
+      // compute score only when finalizing? We'll compute at end. But mark UI now.
+
+      // mark UI immediately
+      const buttons = optionsEl.querySelectorAll('.opt');
+      buttons.forEach((b, idx) =>{
+        b.disabled = true;
+        if(idx === quiz[i].answer){
+          b.classList.add('correct');
+        }
+        if(idx === choice && idx !== quiz[i].answer){
+          b.classList.add('wrong');
+        }
+      });
+
+      nextBtn.disabled = false;
+    }
+
+    prevBtn.addEventListener('click', ()=>{
+      if(state.index>0){
+        state.index--;
+        render();
+      }
+    });
+
+    nextBtn.addEventListener('click', ()=>{
+      // move forward or finish
+      if(state.index < quiz.length -1){
+        state.index++;
+        render();
+      } else {
+        // finish
+        finalize();
+      }
+      // update progress bar to next
+      progressBar.style.width = `${((state.index)/quiz.length)*100}%`;
+    });
+
+    function finalize(){
+      // calculate score
+      let sc = 0;
+      const missed = [];
+      quiz.forEach((q,i)=>{
+        if(state.selected[i] === q.answer) sc++;
+        else missed.push({i, q});
+      });
+      state.score = sc;
+      scoreText.textContent = `${sc} / ${quiz.length}`;
+
+      // build summary
+      let html = `총 ${quiz.length}문제 중 <strong>${sc}</strong>문제 정답입니다.`;
+      html += '<br><br>';
+      html += '<div style="text-align:left;max-height:240px;overflow:auto;padding:6px">';
+      quiz.forEach((q,i)=>{
+        const user = state.selected[i]===null? '미응답' : String.fromCharCode(65+state.selected[i]);
+        const correct = String.fromCharCode(65+q.answer);
+        html += `<div style="margin-bottom:10px"><strong>문항 ${i+1}.</strong> ${q.q}<br> 당신: ${user} &nbsp; 정답: ${correct}<br><em style="color:#6B7072">해설: ${q.explain}</em></div>`;
+      });
+      html += '</div>';
+      summaryText.innerHTML = html;
+
+      // show modal
+      resultModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    retryBtn.addEventListener('click', ()=>{
+      // reset
+      state.index = 0;
+      state.selected = Array(quiz.length).fill(null);
+      state.score = 0;
+      resultModal.classList.remove('open');
+      document.body.style.overflow = '';
+      render();
+    });
+
+    reviewBtn.addEventListener('click', ()=>{
+      // close modal and go to first question for review
+      resultModal.classList.remove('open');
+      document.body.style.overflow = '';
+      state.index = 0;
+      render();
+    });
+
+    // keyboard support
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'ArrowRight'){
+        if(!nextBtn.disabled) nextBtn.click();
+      } else if(e.key === 'ArrowLeft'){
+        if(!prevBtn.disabled) prevBtn.click();
+      }
+    });
+
+    // init
+    render();
+
+  </script>
+</body>
+</html>
